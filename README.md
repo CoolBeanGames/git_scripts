@@ -8,3 +8,5 @@ FOR YOUR GIT REPO
 the scripts will ask for any data it needs
 
 use git launcher for an easy all in one
+
+NODE: Push all and Pull All need to be in the root git directory (along with clone_repo)
