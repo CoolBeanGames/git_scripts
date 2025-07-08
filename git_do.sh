@@ -2,6 +2,7 @@
 
 # This script acts as a launcher for various Git-related shell scripts.
 # It assumes all the listed scripts are in the same directory as this launcher.
+# The launcher will loop until the user explicitly chooses to exit.
 
 # Define an associative array mapping menu options to script filenames
 declare -A SCRIPTS=(
@@ -29,44 +30,57 @@ declare -A SCRIPT_NAMES=(
     ["git_branch_switcher.sh"]="List & Switch Branch"
 )
 
-echo "--- Git Workflow Launcher ---"
-echo "Select a Git operation to perform:"
-echo ""
-
-# Display the menu
-for i in "${!SCRIPTS[@]}"; do
-    SCRIPT_FILE=${SCRIPTS[$i]}
-    SCRIPT_DESC=${SCRIPT_NAMES[$SCRIPT_FILE]}
-    echo "$i. $SCRIPT_DESC"
-done
-echo "0. Exit"
-echo ""
-
-read -p "Enter your choice (0-$((${#SCRIPTS[@]}))): " CHOICE
-
 # Get the directory of the current script
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-if [ "$CHOICE" -eq 0 ]; then
-    echo "Exiting Git Workflow Launcher. Goodbye!"
-    exit 0
-elif [[ -v SCRIPTS[$CHOICE] ]]; then
-    SELECTED_SCRIPT="${SCRIPTS[$CHOICE]}"
-    FULL_SCRIPT_PATH="$SCRIPT_DIR/$SELECTED_SCRIPT"
+CHOICE="" # Initialize choice variable
 
-    if [ -f "$FULL_SCRIPT_PATH" ]; then
-        echo ""
-        echo "--- Running '${SCRIPT_NAMES[$SELECTED_SCRIPT]}' ---"
-        # Execute the selected script
-        bash "$FULL_SCRIPT_PATH"
-        echo ""
-        echo "--- '${SCRIPT_NAMES[$SELECTED_SCRIPT]}' Finished ---"
+echo "--- Git Workflow Launcher ---"
+
+# Start the main loop
+while true; do
+    echo ""
+    echo "Select a Git operation to perform:"
+    echo ""
+
+    # Display the menu
+    for i in "${!SCRIPTS[@]}"; do
+        SCRIPT_FILE=${SCRIPTS[$i]}
+        SCRIPT_DESC=${SCRIPT_NAMES[$SCRIPT_FILE]}
+        echo "$i. $SCRIPT_DESC"
+    done
+    echo "0. Exit"
+    echo ""
+
+    read -p "Enter your choice (0-$((${#SCRIPTS[@]}))): " CHOICE
+
+    if [ "$CHOICE" -eq 0 ]; then
+        echo "Exiting Git Workflow Launcher. Goodbye!"
+        break # Exit the loop
+    elif [[ -v SCRIPTS[$CHOICE] ]]; then
+        SELECTED_SCRIPT="${SCRIPTS[$CHOICE]}"
+        FULL_SCRIPT_PATH="$SCRIPT_DIR/$SELECTED_SCRIPT"
+
+        if [ -f "$FULL_SCRIPT_PATH" ]; then
+            echo ""
+            echo "--- Running '${SCRIPT_NAMES[$SELECTED_SCRIPT]}' ---"
+            # Execute the selected script
+            bash "$FULL_SCRIPT_PATH"
+            echo ""
+            echo "--- '${SCRIPT_NAMES[$SELECTED_SCRIPT]}' Finished ---"
+            echo "Press Enter to continue..."
+            read -r # Wait for user to press Enter before showing menu again
+        else
+            echo "Error: Script '$SELECTED_SCRIPT' not found in '$SCRIPT_DIR'."
+            echo "Please ensure all scripts are in the same directory."
+            echo "Press Enter to continue..."
+            read -r
+        fi
     else
-        echo "Error: Script '$SELECTED_SCRIPT' not found in '$SCRIPT_DIR'."
-        echo "Please ensure all scripts are in the same directory."
+        echo "Invalid choice. Please enter a number from the menu."
+        echo "Press Enter to continue..."
+        read -r
     fi
-else
-    echo "Invalid choice. Please enter a number from the menu."
-fi
+done
 
 echo "--- Launcher Finished ---"
